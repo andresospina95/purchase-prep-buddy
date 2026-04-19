@@ -33,11 +33,15 @@ export const Route = createRootRoute({
       { title: "CIGO · Órdenes de compra" },
       { name: "description", content: "Genera órdenes de compra en el formato oficial CIGO." },
       { name: "author", content: "CIGO" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "CIGO · Órdenes de compra" },
+      { property: "og:description", content: "Genera órdenes de compra en el formato oficial CIGO." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "CIGO · Órdenes de compra" },
+      { name: "twitter:description", content: "Genera órdenes de compra en el formato oficial CIGO." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2178b08b-9cfc-43ee-ac8a-27fc021a137e/id-preview-1dc7b18e--de5def94-a1d7-42b7-8215-9bc7c605492b.lovable.app-1776561889905.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2178b08b-9cfc-43ee-ac8a-27fc021a137e/id-preview-1dc7b18e--de5def94-a1d7-42b7-8215-9bc7c605492b.lovable.app-1776561889905.png" },
     ],
     links: [
       {
