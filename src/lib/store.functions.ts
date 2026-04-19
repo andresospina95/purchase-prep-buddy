@@ -17,7 +17,9 @@ const keySchema = z.enum(KEYS);
 export const getKv = createServerFn({ method: "GET" })
   .inputValidator((input: { key: Key }) => keySchema.parse(input.key) && input)
   .handler(async ({ data }) => {
-    const value = await kvGet<unknown>(data.key, null);
+    const value = (await kvGet<unknown>(data.key, null)) as unknown as
+      | Record<string, unknown>
+      | null;
     return { value };
   });
 
