@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CecoCombobox } from "@/components/CecoCombobox";
 import { toast } from "sonner";
 import {
   useCecos,
@@ -306,21 +307,11 @@ function CrearOC() {
                 <div className="grid gap-3 md:grid-cols-2">
                   <div>
                     <Label>Centro de costo</Label>
-                    <Select
+                    <CecoCombobox
                       value={p.centroCosto}
-                      onValueChange={(v) => updatePos(i, { centroCosto: v })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {cecos.map((c) => (
-                          <SelectItem key={c.codigo} value={c.codigo}>
-                            {c.codigo} — {c.denominacion}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      onChange={(v) => updatePos(i, { centroCosto: v })}
+                      cecos={cecos}
+                    />
                   </div>
                   <div>
                     <Label>Concepto</Label>
