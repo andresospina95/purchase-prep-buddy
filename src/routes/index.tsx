@@ -402,7 +402,7 @@ function CrearOC() {
                       </div>
 
                       <div>
-                        <Label>Texto descriptivo</Label>
+                        <Label>Texto descriptivo <span className="text-destructive">*</span></Label>
                         <Textarea
                           value={p.texto}
                           onChange={(e) => updatePos(i, { texto: e.target.value })}
@@ -416,10 +416,20 @@ function CrearOC() {
               </Card>
 
               {isLast && (
-                <div className="mt-3 flex justify-center">
-                  <Button onClick={addPos} variant="outline" size="sm">
+                <div className="mt-3 flex flex-col items-center gap-1">
+                  <Button
+                    onClick={addPos}
+                    variant="outline"
+                    size="sm"
+                    disabled={!isPosCompleta(p)}
+                  >
                     <Plus className="mr-1 h-4 w-4" /> Agregar posición
                   </Button>
+                  {!isPosCompleta(p) && (
+                    <span className="text-xs text-muted-foreground">
+                      Completa los campos obligatorios para agregar otra
+                    </span>
+                  )}
                 </div>
               )}
             </div>
