@@ -332,7 +332,7 @@ function CrearOC() {
                     <>
                       <div className="grid gap-3 md:grid-cols-3">
                         <div>
-                          <Label>Valor antes de IVA</Label>
+                          <Label>Valor antes de IVA <span className="text-destructive">*</span></Label>
                           <Input
                             type="number"
                             min={0}
@@ -366,7 +366,7 @@ function CrearOC() {
 
                       <div className="grid gap-3 md:grid-cols-2">
                         <div>
-                          <Label>Centro de costo</Label>
+                          <Label>Centro de costo <span className="text-destructive">*</span></Label>
                           <CecoCombobox
                             value={p.centroCosto}
                             onChange={(v) => updatePos(i, { centroCosto: v })}
@@ -374,7 +374,7 @@ function CrearOC() {
                           />
                         </div>
                         <div>
-                          <Label>Concepto</Label>
+                          <Label>Concepto <span className="text-destructive">*</span></Label>
                           <Select
                             value={p.concepto}
                             onValueChange={(v) => updatePos(i, { concepto: v })}
