@@ -10,6 +10,8 @@ import {
   Send,
   Calculator,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -63,6 +65,7 @@ function CrearOC() {
   const [proveedorId, setProveedorId] = useState("");
   const [solicitante, setSolicitante] = useState("");
   const [posiciones, setPosiciones] = useState<Posicion[]>([emptyPosicion(1)]);
+  const [expanded, setExpanded] = useState<number[]>([0]);
   const [adjunto, setAdjunto] = useState<File | null>(null);
   const [generando, setGenerando] = useState(false);
 
@@ -86,13 +89,24 @@ function CrearOC() {
     );
   }
   function addPos() {
-    setPosiciones((prev) => [...prev, emptyPosicion(prev.length + 1)]);
+    setPosiciones((prev) => {
+      const next = [...prev, emptyPosicion(prev.length + 1)];
+      setExpanded([next.length - 1]);
+      return next;
+    });
   }
   function removePos(i: number) {
-    setPosiciones((prev) =>
-      prev
+    setPosiciones((prev) => {
+      const next = prev
         .filter((_, idx) => idx !== i)
-        .map((p, idx) => ({ ...p, posicion: idx + 1 })),
+        .map((p, idx) => ({ ...p, posicion: idx + 1 }));
+      setExpanded([Math.max(0, next.length - 1)]);
+      return next;
+    });
+  }
+  function toggleExpand(i: number) {
+    setExpanded((prev) =>
+      prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i],
     );
   }
 
