@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { saveAs } from "file-saver";
+import fileSaver from "file-saver";
+const { saveAs } = fileSaver;
 import JSZip from "jszip";
 import { Download, Trash2, FileSpreadsheet } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
