@@ -88,8 +88,24 @@ function CrearOC() {
       prev.map((p, idx) => (idx === i ? { ...p, ...patch } : p)),
     );
   }
+  function isPosCompleta(p: Posicion) {
+    return (
+      p.valorAntesIva > 0 &&
+      !!p.centroCosto &&
+      !!p.concepto &&
+      p.texto.trim().length > 0
+    );
+  }
   function addPos() {
     setPosiciones((prev) => {
+      const last = prev[prev.length - 1];
+      if (!isPosCompleta(last)) {
+        toast.error("Completa la posición actual antes de agregar otra", {
+          description: "Valor antes de IVA, centro de costo, concepto y texto son obligatorios.",
+        });
+        setExpanded([prev.length - 1]);
+        return prev;
+      }
       const next = [...prev, emptyPosicion(prev.length + 1)];
       setExpanded([next.length - 1]);
       return next;
