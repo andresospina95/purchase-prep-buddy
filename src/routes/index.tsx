@@ -138,7 +138,7 @@ function CrearOC() {
 
     setGenerando(true);
     try {
-      const numero = nextConsecutivo();
+      const numero = await nextConsecutivo();
       const orden: OrdenCompra = {
         id: crypto.randomUUID(),
         numero,

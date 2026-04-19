@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   SEED_CECOS,
   SEED_CONCEPTOS,
@@ -13,6 +13,7 @@ import type {
   Proveedor,
   TextoSugerido,
 } from "./types";
+import { getKv, setKv, getNextConsecutivo } from "./store.functions";
 
 const KEYS = {
   proveedores: "oc.proveedores",
@@ -20,62 +21,10 @@ const KEYS = {
   conceptos: "oc.conceptos",
   textos: "oc.textos",
   ordenes: "oc.ordenes",
-  consecutivo: "oc.consecutivo",
   config: "oc.config",
 } as const;
 
-function isBrowser() {
-  return typeof window !== "undefined";
-}
-
-function read<T>(key: string, fallback: T): T {
-  if (!isBrowser()) return fallback;
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return fallback;
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
-}
-
-function write<T>(key: string, value: T) {
-  if (!isBrowser()) return;
-  localStorage.setItem(key, JSON.stringify(value));
-  window.dispatchEvent(new CustomEvent("oc-store", { detail: { key } }));
-}
-
-function useStored<T>(key: string, seed: T) {
-  const [value, setValue] = useState<T>(() => read(key, seed));
-
-  useEffect(() => {
-    if (!isBrowser()) return;
-    if (localStorage.getItem(key) === null) {
-      write(key, seed);
-    }
-    const handler = (e: Event) => {
-      const ev = e as CustomEvent<{ key: string }>;
-      if (ev.detail?.key === key) setValue(read(key, seed));
-    };
-    window.addEventListener("oc-store", handler);
-    return () => window.removeEventListener("oc-store", handler);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
-
-  const update = useCallback(
-    (updater: T | ((prev: T) => T)) => {
-      setValue((prev) => {
-        const next =
-          typeof updater === "function" ? (updater as (p: T) => T)(prev) : updater;
-        write(key, next);
-        return next;
-      });
-    },
-    [key],
-  );
-
-  return [value, update] as const;
-}
+type KvKey = (typeof KEYS)[keyof typeof KEYS];
 
 export interface AppConfig {
   correoDestino: string;
@@ -86,6 +35,63 @@ const SEED_CONFIG: AppConfig = {
   correoDestino: CORREO_DESTINO_DEFAULT,
   ccDestino: "",
 };
+
+/**
+ * Hook genérico que sincroniza un valor con la base de datos vía server functions.
+ * - Carga inicial desde el servidor
+ * - Si no hay nada en el servidor, escribe la semilla
+ * - Cada `setValue` envía el estado completo al servidor
+ */
+function useStored<T>(key: KvKey, seed: T) {
+  const [value, setValue] = useState<T>(seed);
+  const [, setLoaded] = useState(false);
+  const seedRef = useRef(seed);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await getKv({ data: { key } });
+        if (cancelled) return;
+        if (res.json === null) {
+          // primera vez: persistimos la semilla
+          await setKv({
+            data: { key, json: JSON.stringify(seedRef.current) },
+          });
+          setValue(seedRef.current);
+        } else {
+          setValue(JSON.parse(res.json) as T);
+        }
+      } catch (err) {
+        console.error(`Error cargando ${key}`, err);
+      } finally {
+        if (!cancelled) setLoaded(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [key]);
+
+  const update = useCallback(
+    (updater: T | ((prev: T) => T)) => {
+      setValue((prev) => {
+        const next =
+          typeof updater === "function"
+            ? (updater as (p: T) => T)(prev)
+            : updater;
+        // fire-and-forget; los errores se loguean
+        setKv({ data: { key, json: JSON.stringify(next) } }).catch((err) =>
+          console.error(`Error guardando ${key}`, err),
+        );
+        return next;
+      });
+    },
+    [key],
+  );
+
+  return [value, update] as const;
+}
 
 export function useProveedores() {
   return useStored<Proveedor[]>(KEYS.proveedores, SEED_PROVEEDORES);
@@ -106,10 +112,7 @@ export function useConfig() {
   return useStored<AppConfig>(KEYS.config, SEED_CONFIG);
 }
 
-export function nextConsecutivo(): number {
-  if (!isBrowser()) return 1;
-  const current = Number(localStorage.getItem(KEYS.consecutivo) ?? "0");
-  const next = current + 1;
-  localStorage.setItem(KEYS.consecutivo, String(next));
-  return next;
+export async function nextConsecutivo(): Promise<number> {
+  const res = await getNextConsecutivo();
+  return res.value;
 }
