@@ -2,25 +2,23 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Instala dependencias
-COPY package.json package-lock.json* bun.lockb* ./
-RUN if [ -f package-lock.json ]; then npm ci; \
-    else npm install; fi
+COPY package.json package-lock.json* ./
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
-# Copia el código y construye
 COPY . .
 RUN npm run build
 
-# --- Stage 2: runtime (nginx estático) ---
-FROM nginx:1.27-alpine AS runner
+# --- Stage 2: runtime ---
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=3000
 
-# Config de nginx con fallback SPA
-COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+# Copia el output del build de TanStack Start.
+# Incluye assets cliente y server bundle.
+COPY --from=builder /app/.output ./.output
+COPY --from=builder /app/package.json ./package.json
 
-# Copia el build (ajusta si tu salida es distinta)
-# TanStack Start con SSR genera /app/.output, pero esta app no usa SSR:
-# usamos el build estático de Vite en /app/dist si existe; si no, el client de .output.
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 3000
+# El entry server emitido por TanStack Start
+CMD ["node", ".output/server/index.mjs"]
