@@ -1,0 +1,8 @@
+services:
+  cigo-oc:
+    build: .
+    image: cigo-oc:latest
+    container_name: cigo-oc
+    ports:
+      - "8080:80"
+    restart: unless-stopped
