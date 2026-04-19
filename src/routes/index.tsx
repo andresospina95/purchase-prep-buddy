@@ -88,8 +88,24 @@ function CrearOC() {
       prev.map((p, idx) => (idx === i ? { ...p, ...patch } : p)),
     );
   }
+  function isPosCompleta(p: Posicion) {
+    return (
+      p.valorAntesIva > 0 &&
+      !!p.centroCosto &&
+      !!p.concepto &&
+      p.texto.trim().length > 0
+    );
+  }
   function addPos() {
     setPosiciones((prev) => {
+      const last = prev[prev.length - 1];
+      if (!isPosCompleta(last)) {
+        toast.error("Completa la posición actual antes de agregar otra", {
+          description: "Valor antes de IVA, centro de costo, concepto y texto son obligatorios.",
+        });
+        setExpanded([prev.length - 1]);
+        return prev;
+      }
       const next = [...prev, emptyPosicion(prev.length + 1)];
       setExpanded([next.length - 1]);
       return next;
@@ -316,7 +332,7 @@ function CrearOC() {
                     <>
                       <div className="grid gap-3 md:grid-cols-3">
                         <div>
-                          <Label>Valor antes de IVA</Label>
+                          <Label>Valor antes de IVA <span className="text-destructive">*</span></Label>
                           <Input
                             type="number"
                             min={0}
@@ -350,7 +366,7 @@ function CrearOC() {
 
                       <div className="grid gap-3 md:grid-cols-2">
                         <div>
-                          <Label>Centro de costo</Label>
+                          <Label>Centro de costo <span className="text-destructive">*</span></Label>
                           <CecoCombobox
                             value={p.centroCosto}
                             onChange={(v) => updatePos(i, { centroCosto: v })}
@@ -358,7 +374,7 @@ function CrearOC() {
                           />
                         </div>
                         <div>
-                          <Label>Concepto</Label>
+                          <Label>Concepto <span className="text-destructive">*</span></Label>
                           <Select
                             value={p.concepto}
                             onValueChange={(v) => updatePos(i, { concepto: v })}
@@ -386,7 +402,7 @@ function CrearOC() {
                       </div>
 
                       <div>
-                        <Label>Texto descriptivo</Label>
+                        <Label>Texto descriptivo <span className="text-destructive">*</span></Label>
                         <Textarea
                           value={p.texto}
                           onChange={(e) => updatePos(i, { texto: e.target.value })}
@@ -400,10 +416,20 @@ function CrearOC() {
               </Card>
 
               {isLast && (
-                <div className="mt-3 flex justify-center">
-                  <Button onClick={addPos} variant="outline" size="sm">
+                <div className="mt-3 flex flex-col items-center gap-1">
+                  <Button
+                    onClick={addPos}
+                    variant="outline"
+                    size="sm"
+                    disabled={!isPosCompleta(p)}
+                  >
                     <Plus className="mr-1 h-4 w-4" /> Agregar posición
                   </Button>
+                  {!isPosCompleta(p) && (
+                    <span className="text-xs text-muted-foreground">
+                      Completa los campos obligatorios para agregar otra
+                    </span>
+                  )}
                 </div>
               )}
             </div>
