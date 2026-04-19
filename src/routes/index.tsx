@@ -251,121 +251,162 @@ function CrearOC() {
 
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-foreground">Posiciones</h2>
-        <Button onClick={addPos} variant="outline" size="sm">
-          <Plus className="mr-1 h-4 w-4" /> Agregar posición
-        </Button>
+        <span className="text-xs text-muted-foreground">
+          {posiciones.length} {posiciones.length === 1 ? "posición" : "posiciones"}
+        </span>
       </div>
 
       <div className="space-y-3">
         {posiciones.map((p, i) => {
           const iva = p.valorAntesIva * p.porcentajeIva;
           const totalLinea = p.valorAntesIva + iva;
+          const isOpen = expanded.includes(i);
+          const isLast = i === posiciones.length - 1;
+          const conceptoNombre =
+            conceptos.find((c) => c.id === p.concepto)?.nombre ?? "Sin concepto";
           return (
-            <Card key={i}>
-              <CardContent className="space-y-4 pt-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                      {p.posicion}
-                    </span>
-                    <span className="text-sm font-medium text-foreground">
-                      Posición {p.posicion}
-                    </span>
-                  </div>
-                  {posiciones.length > 1 && (
-                    <Button
-                      onClick={() => removePos(i)}
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            <div key={i}>
+              <Card>
+                <CardContent className="space-y-4 pt-6">
+                  <div className="flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => toggleExpand(i)}
+                      className="flex flex-1 items-center gap-2 text-left"
                     >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                        {p.posicion}
+                      </span>
+                      <span className="text-sm font-medium text-foreground">
+                        Posición {p.posicion}
+                      </span>
+                      {!isOpen && (
+                        <span className="ml-2 truncate text-xs text-muted-foreground">
+                          {p.centroCosto || "—"} · {conceptoNombre} ·{" "}
+                          {formatCOP(totalLinea)}
+                        </span>
+                      )}
+                    </button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        onClick={() => toggleExpand(i)}
+                        variant="ghost"
+                        size="sm"
+                      >
+                        {isOpen ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </Button>
+                      {posiciones.length > 1 && (
+                        <Button
+                          onClick={() => removePos(i)}
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  {isOpen && (
+                    <>
+                      <div className="grid gap-3 md:grid-cols-3">
+                        <div>
+                          <Label>Valor antes de IVA</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={p.valorAntesIva || ""}
+                            onChange={(e) =>
+                              updatePos(i, { valorAntesIva: Number(e.target.value) || 0 })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <Label>% IVA</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={p.porcentajeIva}
+                            onChange={(e) =>
+                              updatePos(i, { porcentajeIva: Number(e.target.value) || 0 })
+                            }
+                          />
+                        </div>
+                        <div className="rounded-lg border border-border bg-muted/40 px-3 py-2">
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Calculator className="h-3 w-3" /> IVA calculado
+                          </div>
+                          <div className="text-sm font-medium">{formatCOP(iva)}</div>
+                          <div className="text-xs text-muted-foreground">
+                            Total: {formatCOP(totalLinea)}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <div>
+                          <Label>Centro de costo</Label>
+                          <CecoCombobox
+                            value={p.centroCosto}
+                            onChange={(v) => updatePos(i, { centroCosto: v })}
+                            cecos={cecos}
+                          />
+                        </div>
+                        <div>
+                          <Label>Concepto</Label>
+                          <Select
+                            value={p.concepto}
+                            onValueChange={(v) => updatePos(i, { concepto: v })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {conceptos.map((c) => (
+                                <SelectItem key={c.id} value={c.id}>
+                                  {c.nombre}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label>Activo fijo (opcional)</Label>
+                          <Input
+                            value={p.activoFijo ?? ""}
+                            onChange={(e) => updatePos(i, { activoFijo: e.target.value })}
+                            placeholder="Código"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>Texto descriptivo</Label>
+                        <Textarea
+                          value={p.texto}
+                          onChange={(e) => updatePos(i, { texto: e.target.value })}
+                          placeholder="Describe ampliamente el bien o servicio (se enviará en mayúsculas)"
+                          rows={2}
+                        />
+                      </div>
+                    </>
                   )}
-                </div>
+                </CardContent>
+              </Card>
 
-                <div className="grid gap-3 md:grid-cols-3">
-                  <div>
-                    <Label>Valor antes de IVA</Label>
-                    <Input
-                      type="number"
-                      min={0}
-                      value={p.valorAntesIva || ""}
-                      onChange={(e) =>
-                        updatePos(i, { valorAntesIva: Number(e.target.value) || 0 })
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Label>% IVA</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={p.porcentajeIva}
-                      onChange={(e) =>
-                        updatePos(i, { porcentajeIva: Number(e.target.value) || 0 })
-                      }
-                    />
-                  </div>
-                  <div className="rounded-lg border border-border bg-muted/40 px-3 py-2">
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Calculator className="h-3 w-3" /> IVA calculado
-                    </div>
-                    <div className="text-sm font-medium">{formatCOP(iva)}</div>
-                    <div className="text-xs text-muted-foreground">
-                      Total: {formatCOP(totalLinea)}
-                    </div>
-                  </div>
+              {isLast && (
+                <div className="mt-3 flex justify-center">
+                  <Button onClick={addPos} variant="outline" size="sm">
+                    <Plus className="mr-1 h-4 w-4" /> Agregar posición
+                  </Button>
                 </div>
-
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div>
-                    <Label>Centro de costo</Label>
-                    <CecoCombobox
-                      value={p.centroCosto}
-                      onChange={(v) => updatePos(i, { centroCosto: v })}
-                      cecos={cecos}
-                    />
-                  </div>
-                  <div>
-                    <Label>Concepto</Label>
-                    <Select
-                      value={p.concepto}
-                      onValueChange={(v) => updatePos(i, { concepto: v })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {conceptos.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.nombre}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Activo fijo (opcional)</Label>
-                    <Input
-                      value={p.activoFijo ?? ""}
-                      onChange={(e) => updatePos(i, { activoFijo: e.target.value })}
-                      placeholder="Código"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label>Texto descriptivo</Label>
-                  <Textarea
-                    value={p.texto}
-                    onChange={(e) => updatePos(i, { texto: e.target.value })}
-                    placeholder="Describe ampliamente el bien o servicio (se enviará en mayúsculas)"
-                    rows={2}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+              )}
+            </div>
           );
         })}
       </div>
