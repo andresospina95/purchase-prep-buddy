@@ -1,5 +1,7 @@
 # --- Stage 1: build ---
-FROM node:22-slim AS builder
+# IMPORTANTE: forzamos linux/amd64 porque workerd (Cloudflare) sólo trae binario x64.
+# Si construís desde Mac M1/M2/M3, sin esto la imagen no arranca en Azure.
+FROM --platform=linux/amd64 node:22-slim AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
@@ -9,7 +11,7 @@ COPY . .
 RUN npm run build
 
 # --- Stage 2: runtime ---
-FROM node:22-slim AS runner
+FROM --platform=linux/amd64 node:22-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
