@@ -11,7 +11,7 @@ COPY . .
 RUN npm run build
 
 # --- Stage 2: runtime ---
-FROM node:22-slim AS runner
+FROM --platform=linux/amd64 node:22-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
