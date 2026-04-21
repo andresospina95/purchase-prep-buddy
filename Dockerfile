@@ -3,9 +3,6 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-# Usamos `npm install` (no `ci`) porque el lockfile puede estar
-# desactualizado respecto a package.json. Esto lo regenera dentro
-# del contenedor sin bloquear el build.
 RUN npm install --no-audit --no-fund
 
 COPY . .
@@ -17,11 +14,14 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Copia el output del build de TanStack Start.
-# Incluye assets cliente y server bundle.
-COPY --from=builder /app/.output ./.output
+# Necesitamos node_modules (incluye wrangler/miniflare) y el build
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/package-lock.json* ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/wrangler.jsonc ./wrangler.jsonc
 
 EXPOSE 3000
-# El entry server emitido por TanStack Start
-CMD ["node", ".output/server/index.mjs"]
+# wrangler dev usa miniflare (Workers runtime sobre Node) y sirve el build.
+# --var inyecta DATABASE_URL al Worker en runtime desde la env del contenedor.
+CMD ["sh", "-c", "npx wrangler dev --config dist/server/wrangler.json --ip 0.0.0.0 --port 3000 --var DATABASE_URL:\"$DATABASE_URL\""]
