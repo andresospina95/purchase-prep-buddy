@@ -1,15 +1,18 @@
 # --- Stage 1: build ---
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+# Usamos `npm install` (no `ci`) porque el lockfile puede estar
+# desactualizado respecto a package.json. Esto lo regenera dentro
+# del contenedor sin bloquear el build.
+RUN npm install --no-audit --no-fund
 
 COPY . .
 RUN npm run build
 
 # --- Stage 2: runtime ---
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
