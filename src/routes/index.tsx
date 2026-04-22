@@ -63,7 +63,7 @@ function CrearOC() {
   const navigate = useNavigate();
 
   const [proveedorId, setProveedorId] = useState("");
-  const [solicitante, setSolicitante] = useState("");
+  const [solicitante, setSolicitante] = useState("aospinam");
   const [posiciones, setPosiciones] = useState<Posicion[]>([emptyPosicion(1)]);
   const [expanded, setExpanded] = useState<number[]>([0]);
   const [adjunto, setAdjunto] = useState<File | null>(null);
