@@ -6,4 +6,11 @@
 // You can pass additional config via defineConfig({ vite: { ... } }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
-export default defineConfig();
+// Para deploy en Azure (Container Apps / App Service / VM) usamos el preset
+// `node-server` de TanStack Start en vez de Cloudflare Workers. Esto genera
+// un server Node estándar en `dist/server/index.mjs` que se levanta con `node`.
+export default defineConfig({
+  tanstackStart: {
+    target: "node-server",
+  },
+});
