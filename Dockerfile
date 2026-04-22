@@ -22,9 +22,9 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/package-lock.json* ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/server.js ./server.js
 
 EXPOSE 3000
 
-# El preset `node-server` de TanStack Start emite un server Node estándar.
-# Lee DATABASE_URL directamente de process.env (la inyecta Azure).
-CMD ["node", "dist/server/index.mjs"]
+# Azure inicia un servidor Node estándar que envuelve el handler generado.
+CMD ["node", "server.js"]
