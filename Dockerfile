@@ -26,5 +26,5 @@ COPY --from=builder /app/dist ./dist
 EXPOSE 3000
 
 # El preset `node-server` de TanStack Start emite un server Node estándar.
-# Lee DATABASE_URL directamente de process.env (la inyecta Azure).
-CMD ["node", "dist/server/index.mjs"]
+# Azure puede iniciar el contenedor con este CMD o con `npm start`.
+CMD ["node", "dist/server/index.js"]
