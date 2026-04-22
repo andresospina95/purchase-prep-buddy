@@ -63,7 +63,7 @@ function CrearOC() {
   const navigate = useNavigate();
 
   const [proveedorId, setProveedorId] = useState("");
-  const [solicitante, setSolicitante] = useState("");
+  const [solicitante, setSolicitante] = useState("aospinam");
   const [posiciones, setPosiciones] = useState<Posicion[]>([emptyPosicion(1)]);
   const [expanded, setExpanded] = useState<number[]>([0]);
   const [adjunto, setAdjunto] = useState<File | null>(null);
@@ -175,11 +175,13 @@ function CrearOC() {
       const subject = encodeURIComponent(
         `Solicitud OC #${numero} - ${proveedor.razonSocial}`,
       );
+      const archivoDescargado = downloadName;
       const body = encodeURIComponent(
         `Buen día,\n\nAdjunto el formato para la elaboración de la orden de compra #${numero} a nombre de ${proveedor.razonSocial} (NIT ${proveedor.nit}).\n\n` +
           `Total con IVA: ${formatCOP(total)}\nPosiciones: ${posiciones.length}\n\n` +
-          (adjunto ? `Se adjunta también el soporte: ${adjunto.name}\n\n` : "") +
-          `Solicitante: ${solicitante}\n\nGracias.`,
+          `>>> IMPORTANTE: adjunta a este correo el archivo descargado: ${archivoDescargado} <<<\n` +
+          (adjunto ? `(El ZIP ya incluye el Excel y el soporte ${adjunto.name})\n` : "") +
+          `\nSolicitante: ${solicitante}\n\nGracias.`,
       );
       const cc = config.ccDestino ? `&cc=${encodeURIComponent(config.ccDestino)}` : "";
       window.location.href = `mailto:${config.correoDestino}?subject=${subject}${cc}&body=${body}`;
