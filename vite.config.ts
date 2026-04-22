@@ -10,6 +10,7 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 // `node-server` de TanStack Start en vez de Cloudflare Workers. Esto genera
 // un server Node estándar en `dist/server/index.js` que se levanta con `node`.
 export default defineConfig({
+  cloudflare: false,
   tanstackStart: {
     target: "node-server",
   },
