@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import JSZip from "jszip";
 import fileSaver from "file-saver";
 const { saveAs } = fileSaver;
 import {
@@ -152,21 +151,11 @@ function CrearOC() {
       const xlsx = await buildOcExcel({ orden, proveedor, conceptos, cecos });
       const xlsxName = ocFileName(numero, proveedor.razonSocial);
 
-      let downloadName = xlsxName;
-      let downloadBlob: Blob = xlsx;
-
+      // Descargar Excel y adjunto simultáneamente
+      saveAs(xlsx, xlsxName);
       if (adjunto) {
-        const zip = new JSZip();
-        zip.file(xlsxName, xlsx);
-        zip.file(adjunto.name, adjunto);
-        downloadBlob = await zip.generateAsync({ type: "blob" });
-        downloadName = `OC-${String(numero).padStart(5, "0")}_${proveedor.razonSocial.replace(
-          /[^a-zA-Z0-9]+/g,
-          "_",
-        )}.zip`;
+        saveAs(adjunto, adjunto.name);
       }
-
-      saveAs(downloadBlob, downloadName);
 
       // Persistir
       setOrdenes((prev) => [orden, ...prev]);
@@ -175,19 +164,16 @@ function CrearOC() {
       const subject = encodeURIComponent(
         `Solicitud OC #${numero} - ${proveedor.razonSocial}`,
       );
-      const archivoDescargado = downloadName;
       const body = encodeURIComponent(
-        `Buen día,\n\nAdjunto el formato para la elaboración de la orden de compra #${numero} a nombre de ${proveedor.razonSocial} (NIT ${proveedor.nit}).\n\n` +
+        `Buen día juan Felipe,\n\npor favor tu ayuda con la solicitud de la siguiente Orden de Compra,a nombre de ${proveedor.razonSocial} (NIT ${proveedor.nit}).\n\n` +
           `Total con IVA: ${formatCOP(total)}\nPosiciones: ${posiciones.length}\n\n` +
-          `>>> IMPORTANTE: adjunta a este correo el archivo descargado: ${archivoDescargado} <<<\n` +
-          (adjunto ? `(El ZIP ya incluye el Excel y el soporte ${adjunto.name})\n` : "") +
-          `\nSolicitante: ${solicitante}\n\nGracias.`,
+          `\n\nGracias.`,
       );
       const cc = config.ccDestino ? `&cc=${encodeURIComponent(config.ccDestino)}` : "";
       window.location.href = `mailto:${config.correoDestino}?subject=${subject}${cc}&body=${body}`;
 
       toast.success(`OC #${numero} generada`, {
-        description: "Recuerda adjuntar el archivo descargado al correo.",
+        description: "Recuerda adjuntar los archivos descargados al correo.",
         icon: <CheckCircle2 className="h-4 w-4" />,
       });
 
